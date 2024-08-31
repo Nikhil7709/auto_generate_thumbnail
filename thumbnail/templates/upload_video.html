@@ -5,12 +5,6 @@
 </head>
 <body>
     <h1>Upload Video</h1>
-    {% comment %} <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Upload</button>
-    </form> {% endcomment %}
-
     <form method="post">
         {% csrf_token %}
         {{ form.as_p }}
