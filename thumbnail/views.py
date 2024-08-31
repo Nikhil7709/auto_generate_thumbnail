@@ -3,7 +3,6 @@ from django.http import HttpResponseBadRequest
 from django.shortcuts import render, redirect
 from .forms import VideoForm
 from .models import Video
-# from .utils import capture_screenshot, download_video, capture_random_screenshot
 from .utils import capture_screenshot, download_video
 
 from django.core.files.base import ContentFile
@@ -54,11 +53,12 @@ def upload_video(request):
     
     return render(request, 'upload_video.html', {'form': form})
 
+
 def video_list(request):
     """
     Displays the list of uploaded videos with their timestamps.
     """
-    videos = Video.objects.all().order_by('-id')  # Order by latest first
+    videos = Video.objects.all().order_by('-id')
 
     # Generate a list of tuples (video, timestamp) where timestamp is extracted from the filename
     video_data = []
