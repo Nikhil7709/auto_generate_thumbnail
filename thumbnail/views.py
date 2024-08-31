@@ -22,7 +22,7 @@ def upload_video(request):
         
         if timestamp_str:
             try:
-                timestamp = float(timestamp_str)  # Convert to float if provided
+                timestamp = float(timestamp_str)
             except ValueError:
                 return HttpResponseBadRequest("Invalid timestamp format.")
         
@@ -38,7 +38,6 @@ def upload_video(request):
                     thumbnail_filename = f'thumbnail_{screenshot_time:.2f}.jpg'
                     thumbnail_content = ContentFile(thumbnail_io.getvalue(), thumbnail_filename)
                     
-                    # Save the thumbnail
                     video.thumbnail.save(thumbnail_filename, thumbnail_content)
                     
                     # Print video duration for debugging
@@ -60,7 +59,7 @@ def video_list(request):
     """
     videos = Video.objects.all().order_by('-id')
 
-    # Generate a list of tuples (video, timestamp) where timestamp is extracted from the filename
+    # Generate a list of tuples which have videos and images, where timestamp is extracted from the filename
     video_data = []
     for video in videos:
         if video.thumbnail:
