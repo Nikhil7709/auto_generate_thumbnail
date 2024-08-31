@@ -1,10 +1,28 @@
-import random
 import requests
 import tempfile
+import os
 from moviepy.editor import VideoFileClip
-from django.core.files.base import ContentFile
 from io import BytesIO
 from PIL import Image
+
+
+def get_video_file(video_path):
+    """
+    Fetches the video from a URL or local file path.
+    Returns a BytesIO object of the video if successful, else returns None
+    """
+    if video_path.startswith(('http://', 'https://')):
+        # Handle URL
+        response = requests.get(video_path, stream=True)
+        if response.status_code == 200:
+            return BytesIO(response.content)
+        return None
+    else:
+        # Handle local file path
+        if os.path.exists(video_path):
+            with open(video_path, 'rb') as f:
+                return BytesIO(f.read())
+        return None
 
 
 def download_video(video_url):
@@ -17,12 +35,11 @@ def download_video(video_url):
         return BytesIO(response.content)
     return None
 
-
 def capture_screenshot(video_file, timestamp=None):
     """
     Captures a screenshot from the provided video file.
-    If a timestamp is provided and valid, capturong the frame at that specific time by rounded to whole seconds.
-    If the timestamp is invalid or not provided, captures a random screenshot by rounded to whole seconds.
+    If a timestamp is provided and valid, captures the frame at that specific time rounded to whole seconds.
+    If the timestamp is invalid or not provided, captures a screenshot from the center of a random frame.
     Crops a centered 300x140 pixels thumbnail from the video and returns it as BytesIO and the video duration.
     """
     with tempfile.NamedTemporaryFile(delete=False, suffix='.mp4') as temp_video_file:
@@ -40,13 +57,13 @@ def capture_screenshot(video_file, timestamp=None):
         # Determine the time frame for the screenshot
         if timestamp is not None:
             if timestamp < 0 or timestamp > duration:
-                # Invalid timestamp, fallback to random screenshot
-                screenshot_time = round(random.uniform(0, duration))
+                # Invalid timestamp, fallback to center of random frame
+                screenshot_time = duration / 2
             else:
                 # Round timestamp to nearest whole second
                 screenshot_time = round(timestamp)
         else:
-            screenshot_time = round(random.uniform(0, duration))
+            screenshot_time = duration / 2
         
         # Ensure screenshot_time is within the video duration
         screenshot_time = min(max(screenshot_time, 0), duration - 1)
@@ -60,31 +77,20 @@ def capture_screenshot(video_file, timestamp=None):
         # Target dimensions
         target_width, target_height = 300, 140
         
-        # Calculate the aspect ratio
-        aspect_ratio = target_width / target_height
-        
         # Get original dimensions
         original_width, original_height = screenshot_image.size
         
-        # Determine crop box to fit the aspect ratio
-        if original_width / original_height > aspect_ratio:
-            # Wider than target aspect ratio
-            new_width = int(original_height * aspect_ratio)
-            new_height = original_height
-            left = (original_width - new_width) // 2
-            top = 0
-            right = left + new_width
-            bottom = top + new_height
-        else:
-            # Taller than target aspect ratio
-            new_width = original_width
-            new_height = int(original_width / aspect_ratio)
-            left = 0
-            top = (original_height - new_height) // 2
-            right = left + new_width
-            bottom = top + new_height
+        # Calculate crop box centered around the center of the image
+        center_x, center_y = original_width // 2, original_height // 2
+        crop_width = min(original_width, target_width)
+        crop_height = min(original_height, target_height)
         
-        # Crop to fit the target aspect ratio
+        left = max(center_x - crop_width // 2, 0)
+        top = max(center_y - crop_height // 2, 0)
+        right = min(center_x + crop_width // 2, original_width)
+        bottom = min(center_y + crop_height // 2, original_height)
+        
+        # Crop to fit the target aspect ratio centered around the center
         cropped_image = screenshot_image.crop((left, top, right, bottom))
         
         # Resize cropped image to 300x140 pixels
