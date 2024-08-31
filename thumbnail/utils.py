@@ -17,12 +17,11 @@ def download_video(video_url):
         return BytesIO(response.content)
     return None
 
-
 def capture_screenshot(video_file, timestamp=None):
     """
     Captures a screenshot from the provided video file.
-    If a timestamp is provided, captures the frame at that specific time.
-    If no timestamp is provided, captures a random screenshot.
+    If a timestamp is provided and valid, captures the frame at that specific time (rounded to whole seconds).
+    If the timestamp is invalid or not provided, captures a random screenshot (rounded to whole seconds).
     Crops a centered 300x140 pixels thumbnail from the video and returns it as BytesIO and the video duration.
     """
     with tempfile.NamedTemporaryFile(delete=False, suffix='.mp4') as temp_video_file:
@@ -41,12 +40,17 @@ def capture_screenshot(video_file, timestamp=None):
         if timestamp is not None:
             if timestamp < 0 or timestamp > duration:
                 # Invalid timestamp, fallback to random screenshot
-                screenshot_time = random.uniform(0, duration)
+                screenshot_time = round(random.uniform(0, duration))
             else:
-                screenshot_time = timestamp
+                # Round timestamp to nearest whole second
+                screenshot_time = round(timestamp)
         else:
-            screenshot_time = random.uniform(0, duration)
+            screenshot_time = round(random.uniform(0, duration))
         
+        # Ensure screenshot_time is within the video duration
+        screenshot_time = min(max(screenshot_time, 0), duration - 1)
+        
+        # Capture the frame at the determined screenshot_time
         screenshot = clip.get_frame(screenshot_time)
 
         # Convert screenshot to PIL Image
@@ -55,12 +59,12 @@ def capture_screenshot(video_file, timestamp=None):
         # Get the original image dimensions
         width, height = screenshot_image.size
         
-        # Determine orientation
-        is_landscape = width >= height
-        
-        # Calculate cropping coordinates
+        # Calculate cropping coordinates for a 300x140 thumbnail
         crop_width = 300
         crop_height = 140
+        
+        # Determine orientation
+        is_landscape = width >= height
         
         # Calculate center point
         center_x, center_y = width // 2, height // 2
@@ -98,6 +102,7 @@ def capture_screenshot(video_file, timestamp=None):
     thumbnail_io.seek(0)
     
     return thumbnail_io, duration, screenshot_time
+
 
 # def capture_screenshot(video_file, timestamp=None):
 #     """
