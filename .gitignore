@@ -21,6 +21,8 @@ db.sqlite3
 media/
 static/
 thumbnails/
+thumbnail_with_pixel/
+thumbnail_with_ratio/
 
 # Ignore log files and other artifacts
 *.log
