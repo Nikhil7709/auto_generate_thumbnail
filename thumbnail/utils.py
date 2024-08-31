@@ -56,47 +56,42 @@ def capture_screenshot(video_file, timestamp=None):
         # Convert screenshot to PIL Image
         screenshot_image = Image.fromarray(screenshot)
         
-        # Get the original image dimensions
-        width, height = screenshot_image.size
+        # Target dimensions
+        target_width, target_height = 300, 140
         
-        # Calculate cropping coordinates for a 300x140 thumbnail
-        crop_width = 300
-        crop_height = 140
+        # Calculate the aspect ratio
+        aspect_ratio = target_width / target_height
         
-        # Determine orientation
-        is_landscape = width >= height
+        # Get original dimensions
+        original_width, original_height = screenshot_image.size
+        print("at line 67", original_width, original_height)
+        # Determine crop box to fit the aspect ratio
+        if original_width / original_height > aspect_ratio:
+            # Wider than target aspect ratio
+            new_width = int(original_height * aspect_ratio)
+            new_height = original_height
+            left = (original_width - new_width) // 2
+            top = 0
+            right = left + new_width
+            bottom = top + new_height
+        else:
+            # Taller than target aspect ratio
+            new_width = original_width
+            new_height = int(original_width / aspect_ratio)
+            left = 0
+            top = (original_height - new_height) // 2
+            right = left + new_width
+            bottom = top + new_height
         
-        # Calculate center point
-        center_x, center_y = width // 2, height // 2
-        
-        # Determine cropping box
-        left = max(center_x - crop_width // 2, 0)
-        top = max(center_y - crop_height // 2, 0)
-        right = min(center_x + crop_width // 2, width)
-        bottom = min(center_y + crop_height // 2, height)
-        
-        # Ensure cropping box is within image bounds
-        if right - left < crop_width:
-            if left == 0:
-                right = min(left + crop_width, width)
-            else:
-                left = max(right - crop_width, 0)
-                
-        if bottom - top < crop_height:
-            if top == 0:
-                bottom = min(top + crop_height, height)
-            else:
-                top = max(bottom - crop_height, 0)
-        
-        # Crop the image to 300x140 pixels centered on the center of the video
+        # Crop to fit the target aspect ratio
         cropped_image = screenshot_image.crop((left, top, right, bottom))
         
-        # Resize the cropped image to 300x140 pixels
-        thumbnail_image = cropped_image.resize((300, 140), Image.Resampling.LANCZOS)
+        # Resize cropped image to 300x140 pixels
+        thumbnail_image = cropped_image.resize((target_width, target_height), Image.Resampling.LANCZOS)
     
     # Convert the resized image to bytes with high quality
     thumbnail_io = BytesIO()
-    thumbnail_image.save(thumbnail_io, format='PNG', quality=100)  # Save as PNG to retain quality
+    thumbnail_image.save(thumbnail_io, format='PNG', quality=100)
     
     # Reset the file pointer to the beginning
     thumbnail_io.seek(0)
