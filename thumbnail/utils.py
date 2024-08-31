@@ -18,7 +18,6 @@ def download_video(video_url):
     return None
 
 
-
 def capture_screenshot(video_file, timestamp=None):
     """
     Captures a screenshot from the provided video file.
@@ -53,12 +52,20 @@ def capture_screenshot(video_file, timestamp=None):
         # Convert screenshot to PIL Image
         screenshot_image = Image.fromarray(screenshot)
         
-        # Resize the image to the desired thumbnail size
-        thumbnail_image = screenshot_image.resize((300, 140), Image.Resampling.LANCZOS)
+        # Save the image to BytesIO in high quality
+        original_image_io = BytesIO()
+        screenshot_image.save(original_image_io, format='PNG', quality=100)
+        original_image_io.seek(0)
     
-    # Convert the resized image to bytes
+    # Convert the original image to a thumbnail with improved quality
+    original_image = Image.open(original_image_io)
+    
+    # Resize using a high-quality resampling filter
+    thumbnail_image = original_image.resize((300, 140), Image.Resampling.LANCZOS)
+    
+    # Convert the resized image to bytes with high quality, saving it in a PNG format
     thumbnail_io = BytesIO()
-    thumbnail_image.save(thumbnail_io, format='JPEG')
+    thumbnail_image.save(thumbnail_io, format='PNG', quality=100)
     
     # Reset the file pointer to the beginning
     thumbnail_io.seek(0)
