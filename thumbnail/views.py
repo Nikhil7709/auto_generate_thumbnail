@@ -38,16 +38,17 @@ def upload_video(request):
                     return HttpResponseBadRequest("Local file not found.")
             if video_file:
                 try:
-                    # Capture and resize the screenshot and get the video duration
-                    thumbnail_io, video_duration, screenshot_time = capture_screenshot(video_file, timestamp)
+                    # Capture and resize the screenshots and get the video duration
+                    thumbnail_io_300x140, thumbnail_io_2x1, video_duration, screenshot_time = capture_screenshot(video_file, timestamp)
                     
-                    # Format filename with timestamp if available
-                    thumbnail_filename = f'thumbnail_{screenshot_time:.2f}.png'
-                    thumbnail_content = ContentFile(thumbnail_io.getvalue(), thumbnail_filename)
+                    # Format filenames with timestamp if available
+                    thumbnail_filename_300x140 = f'thumbnail_300x140_{screenshot_time:.2f}.png'
+                    thumbnail_filename_2x1 = f'thumbnail_2x1_{screenshot_time:.2f}.png'
                     
-                    # Save the thumbnail
+                    # Save the thumbnails
                     video = Video(video_url=video_path)
-                    video.thumbnail.save(thumbnail_filename, thumbnail_content)
+                    video.thumbnail_with_pixel.save(thumbnail_filename_300x140, ContentFile(thumbnail_io_300x140.getvalue(), thumbnail_filename_300x140))
+                    video.thumbnail_with_ratio.save(thumbnail_filename_2x1, ContentFile(thumbnail_io_2x1.getvalue(), thumbnail_filename_2x1))
                     video.save()
                     
                     # Print video duration for debugging
@@ -64,6 +65,7 @@ def upload_video(request):
     return render(request, 'upload_video.html', {'form': form})
 
 
+
 def video_list(request):
     """
     Displays the list of uploaded videos with their timestamps.
@@ -73,9 +75,9 @@ def video_list(request):
     # Generate a list of tuples which have videos and images, where timestamp is extracted from the filename
     video_data = []
     for video in videos:
-        if video.thumbnail:
+        if video.thumbnail_with_pixel:
             # Extract timestamp from the filename if available
-            filename = video.thumbnail.name
+            filename = video.thumbnail_with_pixel.name
             if filename:
                 try:
                     # Extract timestamp from the filename

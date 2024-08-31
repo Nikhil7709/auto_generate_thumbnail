@@ -1,24 +1,3 @@
-{% comment %} <!DOCTYPE html>
-<html>
-<head>
-    <title>Video List</title>
-</head>
-<body>
-    <h1>Video List</h1>
-    <ul>
-        {% for video in videos %}
-        <li>
-            <a href="{{ video.video_url }}">{{ video.video_url }}</a>
-            {% if video.thumbnail %}
-            <img src="{{ video.thumbnail.url }}" alt="Thumbnail">
-            {% endif %}
-        </li>
-        {% endfor %}
-    </ul>
-</body>
-</html> {% endcomment %}
-
-{% comment %} 
 <!DOCTYPE html>
 <html>
 <head>
@@ -30,60 +9,11 @@
         {% for video, timestamp in video_data %}
         <li>
             <a href="{{ video.video_url }}">{{ video.video_url }}</a>
-            {% if video.thumbnail %}
-            <img src="{{ video.thumbnail.url }}" alt="Thumbnail">
+            {% if video.thumbnail_with_pixel %}
+            <img src="{{ video.thumbnail_with_pixel.url }}" alt="Thumbnail With Pixel">
             {% endif %}
-            {% if timestamp %}
-            <p>Timestamp: {{ timestamp }} seconds</p>
-            {% else %}
-            <p>No timestamp available</p>
-            {% endif %}
-        </li>
-        {% endfor %}
-    </ul>
-</body>
-</html> {% endcomment %}
-
-{% comment %} 
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Video List</title>
-</head>
-<body>
-    <h1>Video List</h1>
-    <ul>
-        {% for video, timestamp in video_data %}
-        <li>
-            <a href="{{ video.video_url }}">{{ video.video_url }}</a>
-            {% if video.thumbnail %}
-            <img src="{{ video.thumbnail.url }}" alt="Thumbnail">
-            {% endif %}
-            {% if timestamp is not None %}
-            <p>Timestamp: {{ timestamp }} seconds</p>
-            {% else %}
-            <p>No timestamp available</p>
-            {% endif %}
-        </li>
-        {% endfor %}
-    </ul>
-</body>
-</html> {% endcomment %}
-
-
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Video List</title>
-</head>
-<body>
-    <h1>Video List</h1>
-    <ul>
-        {% for video, timestamp in video_data %}
-        <li>
-            <a href="{{ video.video_url }}">{{ video.video_url }}</a>
-            {% if video.thumbnail %}
-            <img src="{{ video.thumbnail.url }}" alt="Thumbnail">
+            {% if video.thumbnail_with_ratio %}
+            <img src="{{ video.thumbnail_with_ratio.url }}" alt="Thumbnail With Ratio">
             {% endif %}
             {% if timestamp is not None %}
             <p>Timestamp: {{ timestamp }} seconds</p>
