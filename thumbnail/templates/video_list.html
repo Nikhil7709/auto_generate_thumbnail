@@ -9,17 +9,25 @@
         {% for video, timestamp in video_data %}
         <li>
             <a href="{{ video.video_url }}">{{ video.video_url }}</a>
-            {% if video.thumbnail_with_pixel %}
-            <img src="{{ video.thumbnail_with_pixel.url }}" alt="Thumbnail With Pixel">
-            {% endif %}
-            {% if video.thumbnail_with_ratio %}
-            <img src="{{ video.thumbnail_with_ratio.url }}" alt="Thumbnail With Ratio">
-            {% endif %}
-            {% if timestamp is not None %}
-            <p>Timestamp: {{ timestamp }} seconds</p>
+            
+            {% if video.thumbnail_with_pixel or video.thumbnail_with_ratio %}
+                {% if video.thumbnail_with_pixel %}
+                    <img src="{{ video.thumbnail_with_pixel.url }}" alt="Thumbnail With Pixel">
+                {% endif %}
+                {% if video.thumbnail_with_ratio %}
+                    <img src="{{ video.thumbnail_with_ratio.url }}" alt="Thumbnail With Ratio">
+                {% endif %}
             {% else %}
-            <p>No timestamp available</p>
+                <p>No thumbnail available</p>
             {% endif %}
+            
+            <p>
+                {% if timestamp %}
+                    Timestamp: {{ timestamp }} seconds
+                {% else %}
+                    No timestamp available
+                {% endif %}
+            </p>
         </li>
         {% endfor %}
     </ul>
