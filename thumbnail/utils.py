@@ -36,10 +36,10 @@ def download_video(video_url):
     return None
 
 
-def capture_screenshot(video_file, timestamp=None, aspect_ratio=(2, 1)):
+def capture_screenshot(video_file, timestamp=None):
     """
     Captures screenshots from the provided video file.
-    Returns two BytesIO objects: one for the custom aspect ratio thumbnail and another for the 300x140 thumbnail.
+    Returns two BytesIO objects: one for the specified aspect ratio thumbnail and another for the default 2:1 aspect ratio thumbnail.
     """
     with tempfile.NamedTemporaryFile(delete=False, suffix='.mp4') as temp_video_file:
         temp_video_file.write(video_file.read())
@@ -53,9 +53,10 @@ def capture_screenshot(video_file, timestamp=None, aspect_ratio=(2, 1)):
         if duration == 0:
             raise ValueError("Video duration is zero or could not be determined.")
 
-        # Determine the time frame for the screenshot
+        # Validate and adjust the timestamp
         if timestamp is not None:
-            if timestamp < 0 or timestamp > duration:
+            if timestamp < 0 or timestamp >= duration:
+                print(f"Provided timestamp {timestamp} is out of bounds. Using middle of the video duration.")
                 screenshot_time = duration / 2
             else:
                 screenshot_time = round(timestamp)
@@ -72,24 +73,25 @@ def capture_screenshot(video_file, timestamp=None, aspect_ratio=(2, 1)):
 
         # Target dimensions for the thumbnails
         target_size_300x140 = (300, 140)
+        target_aspect_ratio = (2, 1)
 
         # Generate the 300x140 thumbnail with 'cover' effect
         thumbnail_300x140 = crop_center_with_cover_effect(screenshot_image, *target_size_300x140)
 
-        # Generate the custom aspect ratio thumbnail with 'cover' effect
-        thumbnail_custom_aspect = crop_center_with_aspect_ratio(screenshot_image, aspect_ratio)
+        # Generate the 2:1 aspect ratio thumbnail with 'cover' effect
+        thumbnail_2x1 = crop_center_with_aspect_ratio(screenshot_image, target_aspect_ratio)
 
         # Convert the images to BytesIO
         thumbnail_io_300x140 = BytesIO()
         thumbnail_300x140.save(thumbnail_io_300x140, format='PNG', quality=100)
 
-        thumbnail_io_custom_aspect = BytesIO()
-        thumbnail_custom_aspect.save(thumbnail_io_custom_aspect, format='PNG', quality=100)
+        thumbnail_io_2x1 = BytesIO()
+        thumbnail_2x1.save(thumbnail_io_2x1, format='PNG', quality=100)
 
         thumbnail_io_300x140.seek(0)
-        thumbnail_io_custom_aspect.seek(0)
+        thumbnail_io_2x1.seek(0)
 
-        return thumbnail_io_300x140, thumbnail_io_custom_aspect, duration, screenshot_time
+        return thumbnail_io_300x140, thumbnail_io_2x1, duration, screenshot_time
 
 
 # def capture_screenshot(video_file, timestamp=None):
