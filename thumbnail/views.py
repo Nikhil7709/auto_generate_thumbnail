@@ -17,6 +17,7 @@ def upload_video(request):
     if request.method == 'POST':
         form = VideoForm(request.POST)
         video_path = request.POST.get('video_path', None)
+        aspect_ratio_str = request.POST.get('aspect_ratio', '2:1')
         timestamp_str = request.POST.get('timestamp', None)
         timestamp = None
         
@@ -26,6 +27,14 @@ def upload_video(request):
             except ValueError:
                 return HttpResponseBadRequest("Invalid timestamp format.")
         
+        # Parse the aspect ratio
+        try:
+            aspect_ratio = tuple(map(int, aspect_ratio_str.split(':')))
+            if len(aspect_ratio) != 2:
+                raise ValueError
+        except ValueError:
+            aspect_ratio = (2, 1)  # Default to 2:1 aspect ratio
+
         if video_path:
             # Determine if the path is a URL or local file path
             if video_path.startswith('http://') or video_path.startswith('https://'):
@@ -39,16 +48,18 @@ def upload_video(request):
             if video_file:
                 try:
                     # Capture and resize the screenshots and get the video duration
-                    thumbnail_io_300x140, thumbnail_io_2x1, video_duration, screenshot_time = capture_screenshot(video_file, timestamp)
+                    thumbnail_io_300x140, thumbnail_io_custom_aspect, video_duration, screenshot_time = capture_screenshot(
+                        video_file, timestamp, aspect_ratio
+                    )
                     
                     # Format filenames with timestamp if available
                     thumbnail_filename_300x140 = f'thumbnail_300x140_{screenshot_time:.2f}.png'
-                    thumbnail_filename_2x1 = f'thumbnail_2x1_{screenshot_time:.2f}.png'
+                    thumbnail_filename_custom_aspect = f'thumbnail_custom_aspect_{screenshot_time:.2f}.png'
                     
                     # Save the thumbnails
                     video = Video(video_url=video_path)
-                    video.thumbnail_with_pixel.save(thumbnail_filename_300x140, ContentFile(thumbnail_io_300x140.getvalue(), thumbnail_filename_300x140))
-                    video.thumbnail_with_ratio.save(thumbnail_filename_2x1, ContentFile(thumbnail_io_2x1.getvalue(), thumbnail_filename_2x1))
+                    video.thumbnail_with_pixel.save(thumbnail_filename_300x140, ContentFile(thumbnail_io_300x140.getvalue()))
+                    video.thumbnail_with_ratio.save(thumbnail_filename_custom_aspect, ContentFile(thumbnail_io_custom_aspect.getvalue()))
                     video.save()
                     
                     # Print video duration for debugging

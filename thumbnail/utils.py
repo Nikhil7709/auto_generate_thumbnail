@@ -36,10 +36,10 @@ def download_video(video_url):
     return None
 
 
-def capture_screenshot(video_file, timestamp=None):
+def capture_screenshot(video_file, timestamp=None, aspect_ratio=(2, 1)):
     """
     Captures screenshots from the provided video file.
-    Returns two BytesIO objects: one for the 2:1 aspect ratio thumbnail and another for the 300x140 thumbnail.
+    Returns two BytesIO objects: one for the custom aspect ratio thumbnail and another for the 300x140 thumbnail.
     """
     with tempfile.NamedTemporaryFile(delete=False, suffix='.mp4') as temp_video_file:
         temp_video_file.write(video_file.read())
@@ -72,25 +72,81 @@ def capture_screenshot(video_file, timestamp=None):
 
         # Target dimensions for the thumbnails
         target_size_300x140 = (300, 140)
-        target_aspect_ratio = (2, 1)
 
         # Generate the 300x140 thumbnail with 'cover' effect
         thumbnail_300x140 = crop_center_with_cover_effect(screenshot_image, *target_size_300x140)
 
-        # Generate the 2:1 aspect ratio thumbnail with 'cover' effect
-        thumbnail_2x1 = crop_center_with_aspect_ratio(screenshot_image, target_aspect_ratio)
+        # Generate the custom aspect ratio thumbnail with 'cover' effect
+        thumbnail_custom_aspect = crop_center_with_aspect_ratio(screenshot_image, aspect_ratio)
 
         # Convert the images to BytesIO
         thumbnail_io_300x140 = BytesIO()
         thumbnail_300x140.save(thumbnail_io_300x140, format='PNG', quality=100)
 
-        thumbnail_io_2x1 = BytesIO()
-        thumbnail_2x1.save(thumbnail_io_2x1, format='PNG', quality=100)
+        thumbnail_io_custom_aspect = BytesIO()
+        thumbnail_custom_aspect.save(thumbnail_io_custom_aspect, format='PNG', quality=100)
 
         thumbnail_io_300x140.seek(0)
-        thumbnail_io_2x1.seek(0)
+        thumbnail_io_custom_aspect.seek(0)
 
-        return thumbnail_io_300x140, thumbnail_io_2x1, duration, screenshot_time
+        return thumbnail_io_300x140, thumbnail_io_custom_aspect, duration, screenshot_time
+
+
+# def capture_screenshot(video_file, timestamp=None):
+#     """
+#     Captures screenshots from the provided video file.
+#     Returns two BytesIO objects: one for the 2:1 aspect ratio thumbnail and another for the 300x140 thumbnail.
+#     """
+#     with tempfile.NamedTemporaryFile(delete=False, suffix='.mp4') as temp_video_file:
+#         temp_video_file.write(video_file.read())
+#         temp_video_file.flush()
+
+#         # Load the video clip
+#         clip = VideoFileClip(temp_video_file.name)
+
+#         # Get the exact duration of the video
+#         duration = clip.duration
+#         if duration == 0:
+#             raise ValueError("Video duration is zero or could not be determined.")
+
+#         # Determine the time frame for the screenshot
+#         if timestamp is not None:
+#             if timestamp < 0 or timestamp > duration:
+#                 screenshot_time = duration / 2
+#             else:
+#                 screenshot_time = round(timestamp)
+#         else:
+#             screenshot_time = duration / 2
+
+#         screenshot_time = min(max(screenshot_time, 0), duration - 1)
+
+#         # Capture the frame at the determined screenshot_time
+#         screenshot = clip.get_frame(screenshot_time)
+
+#         # Convert screenshot to PIL Image
+#         screenshot_image = Image.fromarray(screenshot)
+
+#         # Target dimensions for the thumbnails
+#         target_size_300x140 = (300, 140)
+#         target_aspect_ratio = (2, 1)
+
+#         # Generate the 300x140 thumbnail with 'cover' effect
+#         thumbnail_300x140 = crop_center_with_cover_effect(screenshot_image, *target_size_300x140)
+
+#         # Generate the 2:1 aspect ratio thumbnail with 'cover' effect
+#         thumbnail_2x1 = crop_center_with_aspect_ratio(screenshot_image, target_aspect_ratio)
+
+#         # Convert the images to BytesIO
+#         thumbnail_io_300x140 = BytesIO()
+#         thumbnail_300x140.save(thumbnail_io_300x140, format='PNG', quality=100)
+
+#         thumbnail_io_2x1 = BytesIO()
+#         thumbnail_2x1.save(thumbnail_io_2x1, format='PNG', quality=100)
+
+#         thumbnail_io_300x140.seek(0)
+#         thumbnail_io_2x1.seek(0)
+
+#         return thumbnail_io_300x140, thumbnail_io_2x1, duration, screenshot_time
 
 
 def crop_center_with_cover_effect(image, width, height):
@@ -124,6 +180,35 @@ def crop_center_with_cover_effect(image, width, height):
     return cropped_image
 
 
+# def crop_center_with_aspect_ratio(image, aspect_ratio):
+#     """
+#     Crop the image to the specified aspect ratio from the center with 'cover' effect.
+#     """
+#     aspect_ratio_width, aspect_ratio_height = aspect_ratio
+#     img_width, img_height = image.size
+
+#     img_aspect_ratio = img_width / img_height
+#     target_aspect_ratio = aspect_ratio_width / aspect_ratio_height
+
+#     if img_aspect_ratio > target_aspect_ratio:
+#         new_height = img_height
+#         new_width = int(target_aspect_ratio * new_height)
+#     else:
+#         new_width = img_width
+#         new_height = int(new_width / target_aspect_ratio)
+
+#     left = (img_width - new_width) // 2
+#     top = (img_height - new_height) // 2
+#     right = left + new_width
+#     bottom = top + new_height
+
+#     # Crop and resize image to fit the aspect ratio
+#     cropped_image = image.crop((left, top, right, bottom))
+
+#     return cropped_image
+
+
+
 def crop_center_with_aspect_ratio(image, aspect_ratio):
     """
     Crop the image to the specified aspect ratio from the center with 'cover' effect.
@@ -150,4 +235,3 @@ def crop_center_with_aspect_ratio(image, aspect_ratio):
     cropped_image = image.crop((left, top, right, bottom))
 
     return cropped_image
-
